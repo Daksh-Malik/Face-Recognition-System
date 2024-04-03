@@ -1,28 +1,35 @@
 import cv2
-import numpy as np
+import os
 
-faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-cap = cv2.VideoCapture(0)
-cap.set(3,640) #width
-cap.set(4,480) #height
+cam = cv2.VideoCapture(0)
+cam.set(3,640) #width
+cam.set(4,480) #height
 
+# face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+face_detector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+# For each person, enter one numeric face id
+face_id = input('\n enter user id end press <return> ==>  ')
+print("\n [INFO] Initializing face capture. Look the camera and wait ...")
+
+# Initializing individual sampling face count
+count = 0
 while True:
-    ret, img = cap.read()
+    ret, img = cam.read()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = faceCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.2,
-        minNeighbors=5,
-        minSize=(20,20)
-    )
+    faces = face_detector.detectMultiScale(gray, 1.3, 5)
     for(x,y,w,h) in faces:
         cv2.rectangle(img, (x,y), (x+w,y+h), (255,0,0), 2)
-        roi_gray = gray[y:y+h, x:x+w]
-        roi_color = img[y:y+h, x:x+w]
-    cv2.imshow('video',img)
-    k = cv2.waitKey(30) & 0xff
-    if k == 27: # press 'ESC' to quit
+        count+=1 #counting images caputured
+        # Saving the captured image into the datasets folder
+        cv2.imwrite("dataset/User." + str(face_id) + '.' +  str(count) + ".jpg", gray[y:y+h,x:x+w])
+        cv2.imshow('image', img)
+    k = cv2.waitKey(100) & 0xff # Press 'ESC' for exiting video
+    if k == 27:
+        break
+    elif count >= 30: # Taking 30 face samples and stoping the video
         break
 
-cap.release()
+print("\n [INFO] Exiting Program and cleanup stuff")
+cam.release()
 cv2.destroyAllWindows()
